@@ -1,8 +1,12 @@
 package com.example.demospringbatch;
 
 import com.example.demospringbatch.listener.JobListener;
+import com.example.demospringbatch.model.Movie;
 import com.example.demospringbatch.model.Persona;
 import com.example.demospringbatch.processor.PersonaItemProcessor;
+import com.example.demospringbatch.services.MoviesService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -25,11 +29,17 @@ import javax.sql.DataSource;
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
+
+    private static final Logger LOGGER= LoggerFactory.getLogger(BatchConfiguration.class);
+
     @Autowired
     public JobBuilderFactory jobBuilderFactory;
 
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    private MoviesService moviesService;
 
     @Bean
     public FlatFileItemReader<Persona> reader(){
@@ -60,6 +70,13 @@ public class BatchConfiguration {
 
     @Bean
     public Job importPersonaJob(JobListener listener, Step step){
+
+        var movies = moviesService.getMovies();
+
+        for (Movie m:movies) {
+            LOGGER.info(m.getName());
+        }
+
         return jobBuilderFactory.get("importPersonaJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
